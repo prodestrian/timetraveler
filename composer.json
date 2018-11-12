@@ -1,0 +1,19 @@
+{
+    "name": "prodestrian/timetraveler",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Chris Rossi",
+            "email": "chris@prodestrian.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "TimeTraveler\\": "src/"
+        }
+    },
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^7"
+    }
+}
