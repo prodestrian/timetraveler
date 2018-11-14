@@ -21,16 +21,16 @@ final class CLI
         return $this->writer->$method($args);
     }
 
-    public function promptForTimezone($question)
+    public function promptWithValidation($question, $callback, $errormsg)
     {
-        $timezone = $this->getInput($question);
-        // TODO: Break this out into a passable callback parameter
-        // so we can remove all references to timezones from the CLI class
-        if (in_array($timezone, self::$validtimezones)) {
-            return $timezone;
+        $value = $this->getInput($question);
+
+        $response = call_user_func($callback, $value);
+        if (!$response) {
+            $this->writer->error(str_replace('<VALUE>', $value, $errormsg));
+            return $this->promptWithValidation($question, $callback, $errormsg);
         }
-        $this->writer->error("'" . $timezone . "' is not a valid Timezone, please try again");
-        return $this->promptForTimezone($question);
+        return $value;
     }
 
     public function header($text)

@@ -8,26 +8,29 @@ define('DEFAULT_TIMEZONE', date_default_timezone_get());
 
 use TimeTraveler\Libraries\Core as TimeTraveler;
 
+// Initialise CLI Instance
 $cli = new CLI();
 
+// Initialise Core TimeTraveler class with Timezone + CLI instance
 $traveler = new TimeTraveler();
 $traveler->setDefaultTimezone(DEFAULT_TIMEZONE);
 $traveler->setCLIInstance($cli);
 
+// Add intro message
 $cli->header("'TimeTraveler' by Chris Rossi");
 $cli->subHeader("This CLI tool allows you to calculate the difference between two dates");
 $cli->lineBreak();
 
-// Prompt for From Date
+// Prompt for 'From' Date
 $traveler->requestFromDate();
 
-// Prompt for To Date
+// Prompt for 'To' Date
 $traveler->requestToDate();
 
 // Prompt for Output Format
 $traveler->requestOutputFormat();
 
-// Render output as Table
+// Render Output as Table
 $formatteddiff = $traveler->getFormattedDifference();
 $daysbetween = $traveler->getDaysBetween();
 $weekdaysbetween = $traveler->getWeekdaysBetween();
@@ -38,9 +41,9 @@ $data = [
     ['From Date', $traveler->getDate('from'), null],
     ['To Date', $traveler->getDate('to'), null],
     ['Difference', $formatteddiff, null],
-    ['Difference - Days', $daysbetween, $traveler->convert($daysbetween, 'W')],
-    ['Difference - Weekdays', $weekdaysbetween, $traveler->convert($weekdaysbetween, 'D')],
-    ['Difference - Complete Weeks', $weeksbetween, $traveler->convert($weeksbetween, 'W')],
+    ['Difference - Days', $daysbetween . ' days', $traveler->convert($daysbetween, 'D')],
+    ['Difference - Weekdays', $weekdaysbetween . ' weekdays', $traveler->convert($weekdaysbetween, 'D')],
+    ['Difference - Complete Weeks', $weeksbetween . ' weeks', $traveler->convert($weeksbetween, 'W')],
 ];
 
 $cli->table($data);

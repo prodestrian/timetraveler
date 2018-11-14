@@ -29,6 +29,8 @@ class Core
 
     protected $cli;
 
+    protected static $validtimezones = [];
+
     protected static $formats = [
         'seconds' => 1,
         'minutes' => 60,
@@ -37,6 +39,11 @@ class Core
         'weeks' => 86400 * 7,
         'years' => 86400 * 365.25, // Let's include leap-years
     ];
+
+    public function __construct()
+    {
+        self::$validtimezones = DateTimeZone::listIdentifiers();
+    }
 
     public function setCLIInstance($cli)
     {
@@ -60,6 +67,31 @@ class Core
         $this->dates['to'] = $this->requestDate('To');
     }
 
+    public function setFromDate($date, $format = 'Y-m-d', $tz = false)
+    {
+        $tz = ($tz) ?: $this->tzdefault;
+        $date = DateTime::createFromFormat($format, $date, new DateTimeZone($tz));
+        $this->dates['from'] = [
+            'date' => $date,
+            'tz' => $tz,
+        ];
+    }
+
+    public function setToDate($date, $format = 'Y-m-d', $tz = false)
+    {
+        $tz = ($tz) ?: $this->tzdefault;
+        $date = DateTime::createFromFormat($format, $date, new DateTimeZone($tz));
+        $this->dates['to'] = [
+            'date' => $date,
+            'tz' => $tz,
+        ];
+    }
+
+    public function validateTimezone($timezone)
+    {
+        return in_array($timezone, self::$validtimezones);
+    }
+
     protected function requestDate($type)
     {
         $this->cli->question("What is the {$type} Date?", "Acceptable Formats: YYYY-MM-DD, YYYY-MM-DD HH:MM:SS");
@@ -79,7 +111,12 @@ class Core
                 "\tWhat is the Timezone for the {$type} Date?",
                 "Must be a valid PHP Timezone, eg 'Africa/Algiers'"
             );
-            $timezone = $this->cli->promptForTimezone("\tNew Timezone:");
+            //$timezone = $this->cli->promptForTimezone("\tNew Timezone:");
+            $timezone = $this->cli->promptWithValidation(
+                "\tNew Timezone:",
+                [__CLASS__, 'validateTimezone'],
+                "'<VALUE>' is not a valid Timezone, please try again"
+            );
         }
 
         $date = DateTime::createFromFormat($parsed['format'], $parsed['date'], new DateTimeZone($timezone));
@@ -126,7 +163,7 @@ class Core
         return false;
     }
 
-    protected function getDifference()
+    public function getDifference()
     {
         return $this->dates['from']['date']->diff($this->dates['to']['date']);
     }
@@ -134,7 +171,11 @@ class Core
     public function getFormattedDifference()
     {
         $diff = $this->getDifference();
-        return $diff->format('%d days, %h hours, %i minutes, %s seconds');
+        $format = '%d days, %h hours, %i minutes, %s seconds';
+        if ($diff->days >= 365) {
+            $format = "%y years, {$format}";
+        }
+        return $diff->format($format);
     }
 
     public function getDaysBetween()
@@ -181,14 +222,21 @@ class Core
         $interval = new DateInterval("P{$input}{$inputformat}");
 
         // Convert to seconds
-        $seconds = ($interval->d * 86400)
-             + ($interval->h * 3600)
-             + ($interval->i * 60)
-             + ($interval->s);
+        $seconds = $this->convertToSeconds($interval);
 
         $interval = $seconds / self::$formats[$this->outputformat];
 
+        $interval = round($interval, 2);
+
         $output = "{$interval} " . $this->outputformat;
         return $output;
+    }
+
+    public function convertToSeconds(DateInterval $interval)
+    {
+        return ($interval->d * 86400)
+             + ($interval->h * 3600)
+             + ($interval->i * 60)
+             + ($interval->s);
     }
 }
