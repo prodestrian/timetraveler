@@ -1,11 +1,12 @@
 <?php
 
+/**
+ * Primary entrypoint into the TimeTraveler CLI tool
+ */
+
 require_once "vendor/autoload.php";
 
 use TimeTraveler\Libraries\CLI;
-
-define('DEFAULT_TIMEZONE', date_default_timezone_get());
-
 use TimeTraveler\Libraries\Core as TimeTraveler;
 
 // Initialise CLI Instance
@@ -13,7 +14,7 @@ $cli = new CLI();
 
 // Initialise Core TimeTraveler class with Timezone + CLI instance
 $traveler = new TimeTraveler();
-$traveler->setDefaultTimezone(DEFAULT_TIMEZONE);
+$traveler->setDefaultTimezone(date_default_timezone_get());
 $traveler->setCLIInstance($cli);
 
 // Add intro message
